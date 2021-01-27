@@ -1,0 +1,10 @@
+data/
+exported/
+for_Isabel/
+figures/
+Robjects/
+.RData
+.Rhistory
+.Rproj.user/
+
+

@@ -1,0 +1,184 @@
+---
+title: "Optimized spatial scale landcover"
+author: "Christine Anderson"
+date: "August 27, 2020"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r not plots, include=FALSE}
+
+source("data_cleaning_scripts/001_Library.R")
+
+buffers <- readRDS("Robjects/buffers.RDS")
+buffer_cols <- readRDS("Robjects/buffercols.RDS")
+
+
+
+landcover_classes <- data.frame(lc_code = 0:15,
+                                lc_class = c(
+                                  "00_missing_data",
+                                  "01_tussock_graminoid",
+                                  "02_wet_sedge",
+                                  "03_nontussock_graminoid_dwarf_shrub",
+                                  "04_dry_graminoid_prostrate_dwarf_shrub_tundra",
+                                  "05_low_shrub",
+                                  "06_tall_shrub",
+                                  "07_prostrate_dwarf_shrub",
+                                  "08_sparsely_vegetated_bedrock",
+                                  "09_sparsely_vegetated_till",
+                                  "10_bare_soil_cryptogam_frost_boils",
+                                  "11_wetlands",
+                                  "12_barren",
+                                  "13_ice_snow",
+                                  "14_shadow",
+                                  "15_water"),
+                                lc_group = c(
+                                  "missing data",
+                                  "graminoid",
+                                  "graminoid",
+                                  "graminoid",
+                                  "graminoid",
+                                  "shrub",
+                                  "shrub",
+                                  "shrub",
+                                  "sparsely_vegetated",
+                                  "sparsely_vegetated",
+                                  "sparsely_vegetated",
+                                  "wetland",
+                                  "barren",
+                                  "ice_snow",
+                                  "shadow",
+                                  "water"))
+
+
+
+
+####################################
+####################################
+### MODELS ####
+
+sb_env_buffer_wide <- readRDS("Robjects/sb_env_buffer_wide.RDS")
+
+
+
+
+
+#AMGP data
+
+
+AMGP_lc <- sb_env_buffer_wide %>%
+  filter(Species == "AMGP")
+
+
+
+AMGP_lc_list <- group_split(AMGP_lc, landcover)
+names(AMGP_lc_list) <- landcover_classes$lc_class
+  
+
+  
+  
+
+
+#REPH data
+
+
+REPH_lc <- sb_env_buffer_wide %>%
+  filter(Species == "REPH")
+
+
+REPH_lc_list <- group_split(REPH_lc, landcover)
+names(REPH_lc_list) <- landcover_classes$lc_class
+
+
+
+
+
+
+
+
+
+
+```
+
+
+
+
+
+## Red Phalarope plots
+
+```{r REPH plots, echo=FALSE}
+
+
+
+
+REPH_models <- vector(mode = "list", length = nrow(landcover_classes))
+
+for(i in 1:nrow(landcover_classes)) {
+  
+  print(landcover_classes$lc_class[i])
+  
+  y <- REPH_lc_list[[i]]
+  
+  REPH_models[[i]] <- multifit(mod = "glm", 
+                               multief = buffer_cols, #column names
+                               formula = presence ~ multief,
+                               args = c("family = binomial"),
+                               data = as.data.frame(y), #which landcover variable
+                               criterion = "AIC",
+                               plot_est = T,
+                               site_id = "Plot",
+                               print_sum = TRUE)}
+
+
+
+
+
+
+```
+
+
+
+
+
+## American Golder-Plover Plots
+
+```{r AMGP plots, echo=FALSE}
+
+
+
+
+
+AMGP_models <- vector(mode = "list", length = nrow(landcover_classes))
+
+for(i in 1:nrow(landcover_classes)) {
+  
+  print(landcover_classes$lc_class[i])
+  
+  y <- AMGP_lc_list[[i]]
+    
+  AMGP_models[[i]] <- multifit(mod = "glm", 
+                             multief = buffer_cols, #column names
+                             formula = presence ~ multief,
+                             args = c("family = binomial"),
+                             data = as.data.frame(y), #which landcover variable
+                             criterion = "AIC",
+                             plot_est = T,
+                             site_id = "Plot",
+                             print_sum = TRUE)
+  
+}
+
+
+
+
+
+```
+
+
